@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ever-Living</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', sans-serif;
+      background: #1c1c1e;
+      color: #f5f5f7;
+      padding: 20px;
+      -webkit-app-region: drag;
+      user-select: none;
+    }
+    .status { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot.on { background: #30d158; box-shadow: 0 0 6px #30d158; }
+    .dot.off { background: #ff453a; }
+    .label { font-size: 14px; font-weight: 500; }
+    .info { font-size: 12px; color: #8e8e93; margin-bottom: 16px; }
+    .card { background: #2c2c2e; border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+    .card .row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+    .card .key { color: #8e8e93; }
+    .card .val { color: #f5f5f7; font-weight: 500; }
+    .btn {
+      display: block; width: 100%; padding: 10px; border: none; border-radius: 8px;
+      font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 8px;
+      -webkit-app-region: no-drag;
+    }
+    .btn.primary { background: #0a84ff; color: #fff; }
+    .btn.primary:hover { background: #409cff; }
+    .btn.danger { background: #ff453a; color: #fff; }
+    .btn.danger:hover { background: #ff6961; }
+    .btn.ghost { background: #3a3a3c; color: #f5f5f7; }
+    .btn.ghost:hover { background: #48484a; }
+    .error { background: #3a1e1e; color: #ff453a; padding: 10px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; display: none; }
+    .error.show { display: block; }
+  </style>
+</head>
+<body>
+  <div class="status">
+    <div class="dot" id="dot"></div>
+    <span class="label" id="statusText">检测中…</span>
+  </div>
+  <div id="errorBox" class="error"></div>
+  <div class="card">
+    <div class="row"><span class="key">端口</span><span class="val" id="portVal">—</span></div>
+    <div class="row"><span class="key">PID</span><span class="val" id="pidVal">—</span></div>
+  </div>
+  <a id="openLink" href="#" target="_blank" style="text-decoration:none;">
+    <button class="btn primary">打开 Ever-Living Web UI</button>
+  </a>
+  <button class="btn ghost" id="restartBtn">重启服务</button>
+  <button class="btn ghost" id="prefsBtn">偏好设置…</button>
+
+  <script>
+    const { invoke } = window.__TAURI__.core;
+    const dot = document.getElementById('dot');
+    const statusText = document.getElementById('statusText');
+    const errorBox = document.getElementById('errorBox');
+    const portVal = document.getElementById('portVal');
+    const pidVal = document.getElementById('pidVal');
+    const openLink = document.getElementById('openLink');
+
+    async function refresh() {
+      try {
+        const s = await invoke('get_status');
+        if (s.running) {
+          dot.className = 'dot on';
+          statusText.textContent = '服务运行中';
+          portVal.textContent = s.port;
+          pidVal.textContent = s.pid || '—';
+          openLink.href = `http://127.0.0.1:${s.port}`;
+          errorBox.classList.remove('show');
+        } else {
+          dot.className = 'dot off';
+          statusText.textContent = '服务未运行';
+          portVal.textContent = '—';
+          pidVal.textContent = '—';
+          openLink.href = '#';
+        }
+      } catch (e) {
+        dot.className = 'dot off';
+        statusText.textContent = '错误';
+        errorBox.textContent = e;
+        errorBox.classList.add('show');
+      }
+    }
+
+    document.getElementById('restartBtn').addEventListener('click', async () => {
+      statusText.textContent = '重启中…';
+      errorBox.classList.remove('show');
+      try {
+        await invoke('restart_service');
+        await refresh();
+      } catch (e) {
+        errorBox.textContent = '重启失败: ' + e;
+        errorBox.classList.add('show');
+      }
+    });
+
+    document.getElementById('prefsBtn').addEventListener('click', () => {
+      invoke('open_prefs_window');
+    });
+
+    // 监听后端状态推送
+    window.__TAURI__.event.listen('status', (ev) => {
+      const s = ev.payload;
+      dot.className = s.running ? 'dot on' : 'dot off';
+      statusText.textContent = s.running ? '服务运行中' : '服务未运行';
+      portVal.textContent = s.running ? s.port : '—';
+      pidVal.textContent = s.pid || '—';
+      openLink.href = s.running ? `http://127.0.0.1:${s.port}` : '#';
+    });
+
+    refresh();
+  </script>
+</body>
+</html>

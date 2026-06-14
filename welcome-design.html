@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ever-Living Welcome Design</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  :root {
+    --green-primary: #8FCA97;
+    --green-hover: #6db877;
+    --green-dark: #4a9e57;
+    --green-soft: #eaf6ec;
+  }
+
+  body { font-family: 'Outfit', -apple-system, sans-serif; background: #f0f2f0; }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+
+  .page-header { text-align: center; margin-bottom: 40px; }
+  .page-header h1 { font-size: 28px; font-weight: 700; color: #1d1f1d; }
+  .page-header p { font-size: 14px; color: #6e7a6e; margin-top: 8px; }
+  .color-chip { display: inline-flex; align-items: center; gap: 6px; background: #fff; border-radius: 20px; padding: 6px 14px; font-size: 13px; font-weight: 600; color: #1d1f1d; margin-top: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .color-dot { width: 16px; height: 16px; border-radius: 50%; background: var(--green-primary); }
+
+  /* ── Preview Grid ── */
+  .preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 800px) { .preview-grid { grid-template-columns: 1fr; } }
+
+  .preview-card { border-radius: 20px; overflow: hidden; box-shadow: 0 4px 32px rgba(0,0,0,.08); }
+  .preview-card-header { padding: 10px 18px; color: #fff; font-size: 12px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+  .preview-card-header .dots { display: flex; gap: 6px; }
+  .preview-card-header .dots span { width: 10px; height: 10px; border-radius: 50%; }
+  .preview-card-header .dots span:nth-child(1) { background: #ff5f57; }
+  .preview-card-header .dots span:nth-child(2) { background: #febc2e; }
+  .preview-card-header .dots span:nth-child(3) { background: #28c840; }
+
+  /* ── Welcome Screen ── */
+  .welcome { min-height: 520px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 40px; text-align: center; position: relative; overflow: hidden; }
+
+  .welcome-bg-rings { position: absolute; inset: 0; pointer-events: none; }
+  .welcome-bg-ring { position: absolute; border-radius: 50%; border: 1px solid; opacity: .06; }
+  .welcome-bg-ring:nth-child(1) { width: 600px; height: 600px; top: -200px; left: -100px; }
+  .welcome-bg-ring:nth-child(2) { width: 400px; height: 400px; bottom: -150px; right: -80px; }
+  .welcome-bg-ring:nth-child(3) { width: 200px; height: 200px; top: 40%; right: -40px; }
+
+  .welcome-icon-wrap { position: relative; margin-bottom: 36px; }
+  .welcome-icon { width: 88px; height: 88px; border-radius: 22px; box-shadow: 0 8px 32px rgba(0,0,0,.12); display: block; }
+  .welcome-icon-glow { position: absolute; inset: -8px; border-radius: 30px; background: var(--green-primary); opacity: .15; filter: blur(20px); z-index: -1; }
+
+  /* Brand text — image-inspired */
+  .brand-block { margin-bottom: 12px; position: relative; }
+  .brand-name { font-size: 52px; font-weight: 800; color: var(--green-primary); letter-spacing: -0.5px; line-height: 1.1; position: relative; display: inline-block; }
+  .brand-leaf { position: absolute; top: -28px; right: -8px; width: 22px; height: 26px; }
+  .brand-leaf svg { width: 100%; height: 100%; }
+
+  .brand-tagline { font-size: 15px; font-weight: 300; color: var(--green-primary); opacity: .75; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 36px; }
+  .brand-tagline span { margin: 0 8px; opacity: .4; }
+
+  .brand-divider { width: 48px; height: 2px; background: var(--green-primary); opacity: .3; border-radius: 1px; margin: 0 auto 32px; }
+
+  .welcome-desc { font-size: 15px; line-height: 1.7; margin-bottom: 36px; max-width: 380px; }
+  .welcome-btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 32px; border: none; border-radius: 100px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all .2s; font-family: inherit; }
+  .welcome-btn .plus { width: 20px; height: 20px; border-radius: 50%; background: rgba(255,255,255,.25); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+
+  .welcome-hint { margin-top: 28px; font-size: 12px; opacity: .45; letter-spacing: 1px; }
+
+  /* ── Light Theme ── */
+  .theme-light { background: #fcfdfa; }
+  .theme-light .welcome-bg-ring { border-color: var(--green-primary); }
+  .theme-light .welcome-desc { color: #4a5c4a; }
+  .theme-light .welcome-btn { background: var(--green-primary); color: #fff; box-shadow: 0 4px 20px rgba(143,202,151,.35); }
+  .theme-light .welcome-btn:hover { background: var(--green-hover); transform: translateY(-1px); box-shadow: 0 6px 28px rgba(143,202,151,.45); }
+  .theme-light .welcome-hint { color: #7a8c7a; }
+
+  /* ── Dark Theme ── */
+  .theme-dark { background: #121612; }
+  .theme-dark .welcome-bg-ring { border-color: var(--green-primary); opacity: .08; }
+  .theme-dark .welcome-desc { color: #a0b0a0; }
+  .theme-dark .welcome-btn { background: var(--green-primary); color: #121612; box-shadow: 0 4px 20px rgba(143,202,151,.25); }
+  .theme-dark .welcome-btn:hover { background: var(--green-hover); box-shadow: 0 6px 28px rgba(143,202,151,.35); }
+  .theme-dark .welcome-hint { color: #6a7a6a; }
+  .theme-dark .brand-leaf { filter: brightness(1.1); }
+
+  /* ── Design #2: Minimal ── */
+  .theme-light-alt { background: #fff; }
+  .theme-light-alt .welcome-bg-ring { border-color: var(--green-primary); }
+  .theme-light-alt .welcome-desc { color: #5a6a5a; }
+  .theme-light-alt .welcome-btn { background: var(--green-primary); color: #fff; box-shadow: 0 4px 20px rgba(143,202,151,.35); }
+  .theme-light-alt .welcome-btn:hover { background: var(--green-hover); }
+  .theme-light-alt .brand-name { font-weight: 700; }
+  .theme-light-alt .welcome-hint { color: #8a9a8a; }
+
+  .theme-dark-alt { background: #1a1d1a; }
+  .theme-dark-alt .welcome-bg-ring { border-color: var(--green-primary); opacity: .08; }
+  .theme-dark-alt .welcome-desc { color: #b0bdb0; }
+  .theme-dark-alt .welcome-btn { background: var(--green-primary); color: #1a1d1a; box-shadow: 0 4px 20px rgba(143,202,151,.2); }
+  .theme-dark-alt .welcome-btn:hover { background: var(--green-hover); }
+  .theme-dark-alt .brand-name { font-weight: 700; }
+  .theme-dark-alt .welcome-hint { color: #7a8a7a; }
+
+  /* ── Summary Bar ── */
+  .summary { background: #fff; border-radius: 16px; padding: 20px 24px; margin-top: 32px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.04); flex-wrap: wrap; }
+  .summary-label { font-size: 13px; color: #6e7a6e; min-width: 60px; }
+  .summary-hex { font-family: 'SF Mono', monospace; font-size: 13px; font-weight: 600; background: var(--green-soft); color: var(--green-dark); padding: 4px 10px; border-radius: 6px; }
+  .summary-apply { margin-left: auto; padding: 10px 24px; background: var(--green-primary); color: #fff; border: none; border-radius: 100px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .summary-apply:hover { background: var(--green-hover); }
+
+  .section-label { font-size: 14px; font-weight: 600; color: #4a5c4a; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .section-label::before { content:''; width: 6px; height: 6px; border-radius: 50%; background: var(--green-primary); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="page-header">
+    <h1>Ever-Living Welcome 设计预览</h1>
+    <p>4 套 Welcome 页面方案 · 主色提取自图标</p>
+    <div class="color-chip"><span class="color-dot"></span> Accent: #8FCA97</div>
+  </div>
+
+  <!-- ══ Design 1: Classic with Leaf ══ -->
+  <div class="section-label">方案 1 — 经典带叶</div>
+  <div class="preview-grid">
+
+    <!-- Light -->
+    <div class="preview-card">
+      <div class="preview-card-header" style="background:#2a302a;"><div class="dots"><span></span><span></span><span></span></div> 浅色主题</div>
+      <div class="welcome theme-light">
+        <div class="welcome-bg-rings">
+          <div class="welcome-bg-ring"></div>
+          <div class="welcome-bg-ring"></div>
+          <div class="welcome-bg-ring"></div>
+        </div>
+        <div class="welcome-icon-wrap">
+          <div class="welcome-icon-glow"></div>
+          <img class="welcome-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%238FCA97'/%3E%3Cstop offset='100%25' stop-color='%236db877'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='200' height='200' rx='44' fill='url(%23g)'/%3E%3Ccircle cx='85' cy='85' r='40' fill='white' opacity='.18'/%3E%3Ccircle cx='130' cy='140' r='50' fill='white' opacity='.1'/%3E%3C/svg%3E" alt="Ever-Living">
+        </div>
+        <div class="brand-block">
+          <span class="brand-name">Ever-Living</span>
+          <span class="brand-leaf">
+            <svg viewBox="0 0 24 28" fill="none"><path d="M12 1C9 5 2 10 2 17c0 5 4 10 10 10s10-5 10-10c0-7-7-12-10-16z" fill="#8FCA97" opacity=".85"/><path d="M12 1c0 4 2 8 3 12" stroke="#6db877" stroke-width="1.5" stroke-linecap="round"/><path d="M12 1v6" stroke="#6db877" stroke-width="1" stroke-linecap="round" opacity=".5"/></svg>
+          </span>
+        </div>
+        <div class="brand-tagline">Live Green <span>·</span> Live Well <span>·</span> Live Forever</div>
+        <div class="brand-divider"></div>
+        <div class="welcome-desc">你的 AI 永续助理。<br>持久对话，智能记忆，多会话并行。</div>
+        <button class="welcome-btn"><span class="plus">+</span> 新会话</button>
+        <div class="welcome-hint">⌘N 或 点击按钮开始</div>
+      </div>
+    </div>
+
+    <!-- Dark -->
+    <div class="preview-card">
+      <div class="preview-card-header" style="background:#1a1c1a;"><div class="dots"><span></span><span></span><span></span></div> 暗色主题</div>
+      <div class="welcome theme-dark">
+        <div class="welcome-bg-rings">
+          <div class="welcome-bg-ring"></div>
+          <div class="welcome-bg-ring"></div>
+          <div class="welcome-bg-ring"></div>
+        </div>
+        <div class="welcome-icon-wrap">
+          <div class="welcome-icon-glow"></div>
+          <img class="welcome-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%238FCA97'/%3E%3Cstop offset='100%25' stop-color='%236db877'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='200' height='200' rx='44' fill='url(%23g)'/%3E%3Ccircle cx='85' cy='85' r='40' fill='white' opacity='.18'/%3E%3Ccircle cx='130' cy='140' r='50' fill='white' opacity='.1'/%3E%3C/svg%3E" alt="Ever-Living">
+        </div>
+        <div class="brand-block">
+          <span class="brand-name">Ever-Living</span>
+          <span class="brand-leaf">
+            <svg viewBox="0 0 24 28" fill="none"><path d="M12 1C9 5 2 10 2 17c0 5 4 10 10 10s10-5 10-10c0-7-7-12-10-16z" fill="#8FCA97" opacity=".85"/><path d="M12 1c0 4 2 8 3 12" stroke="#6db877" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </span>
+        </div>
+        <div class="brand-tagline">Live Green <span>·</span> Live Well <span>·</span> Live Forever</div>
+        <div class="brand-divider"></div>
+        <div class="welcome-desc">你的 AI 永续助理。<br>持久对话，智能记忆，多会话并行。</div>
+        <button class="welcome-btn"><span class="plus">+</span> 新会话</button>
+        <div class="welcome-hint">⌘N 或 点击按钮开始</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Design 2: Clean Minimal ══ -->
+  <div class="section-label" style="margin-top:32px;">方案 2 — 极简干净</div>
+  <div class="preview-grid">
+    <div class="preview-card">
+      <div class="preview-card-header" style="background:#2a302a;"><div class="dots"><span></span><span></span><span></span></div> 浅色主题</div>
+      <div class="welcome theme-light-alt" style="min-height:520px;">
+        <div class="welcome-icon-wrap">
+          <div class="welcome-icon-glow"></div>
+          <img class="welcome-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%238FCA97'/%3E%3Cstop offset='100%25' stop-color='%236db877'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='200' height='200' rx='44' fill='url(%23g)'/%3E%3C/svg%3E" alt="Ever-Living">
+        </div>
+        <div class="brand-name" style="font-size:40px;">Ever-Living</div>
+        <div class="brand-tagline" style="letter-spacing:4px;">AI-Powered · Persistent · Personal</div>
+        <div class="brand-divider"></div>
+        <div class="welcome-desc">让你的 AI 助理持续在线，跨越会话边界。</div>
+        <button class="welcome-btn"><span class="plus">+</span> 开始新会话</button>
+        <div class="welcome-hint">⌘N</div>
+      </div>
+    </div>
+
+    <div class="preview-card">
+      <div class="preview-card-header" style="background:#1a1c1a;"><div class="dots"><span></span><span></span><span></span></div> 暗色主题</div>
+      <div class="welcome theme-dark-alt" style="min-height:520px;">
+        <div class="welcome-icon-wrap">
+          <div class="welcome-icon-glow"></div>
+          <img class="welcome-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%238FCA97'/%3E%3Cstop offset='100%25' stop-color='%236db877'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='200' height='200' rx='44' fill='url(%23g)'/%3E%3C/svg%3E" alt="Ever-Living">
+        </div>
+        <div class="brand-name" style="font-size:40px;">Ever-Living</div>
+        <div class="brand-tagline" style="letter-spacing:4px;">AI-Powered · Persistent · Personal</div>
+        <div class="brand-divider"></div>
+        <div class="welcome-desc">让你的 AI 助理持续在线，跨越会话边界。</div>
+        <button class="welcome-btn"><span class="plus">+</span> 开始新会话</button>
+        <div class="welcome-hint">⌘N</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary">
+    <span class="summary-label">Primary</span><span class="summary-hex">#8FCA97</span>
+    <span class="summary-label">Hover</span><span class="summary-hex">#6db877</span>
+    <span class="summary-label">Dark</span><span class="summary-hex">#4a9e57</span>
+    <span style="font-size:12px;color:#6e7a6e;margin-left:8px;">| 字体: Outfit · SF Pro Display</span>
+    <button class="summary-apply" onclick="confirmPick()">✅ 确认此方案</button>
+  </div>
+</div>
+
+<script>
+function confirmPick() {
+  const css = `
+  --color-accent-primary: #8FCA97;
+  --color-accent-hover: #6db877;`;
+  alert('选中配色: #8FCA97\n\nCSS 变量:\n' + css + '\n\n告诉 Claude 应用到 app.css');
+}
+</script>
+</body>
+</html>

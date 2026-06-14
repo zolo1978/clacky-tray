@@ -1,0 +1,14 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Ever-Living 权限",
+  "windows": ["ever-living", "preferences"],
+  "permissions": [
+    "core:default",
+    "opener:default",
+    "shell:allow-open",
+    "notification:default",
+    "global-shortcut:default",
+    "autostart:default"
+  ]
+}

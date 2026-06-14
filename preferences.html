@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>偏好设置</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', sans-serif;
+      background: #1c1c1e; color: #f5f5f7; padding: 20px;
+      user-select: none;
+    }
+    h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 12px; color: #8e8e93; margin-bottom: 4px; }
+    .field input[type="text"], .field input[type="number"], .field select {
+      width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid #3a3a3c;
+      background: #2c2c2e; color: #f5f5f7; font-size: 13px; outline: none;
+    }
+    .field select { appearance: none; cursor: pointer; }
+    .field input:focus, .field select:focus { border-color: #0a84ff; }
+    .toggle { display: flex; justify-content: space-between; align-items: center; }
+    .toggle input { display: none; }
+    .toggle .switch {
+      width: 42px; height: 24px; border-radius: 12px; background: #3a3a3c;
+      position: relative; cursor: pointer; transition: background .2s;
+    }
+    .toggle .switch::after {
+      content: ''; position: absolute; top: 2px; left: 2px;
+      width: 20px; height: 20px; border-radius: 50%; background: #fff;
+      transition: transform .2s;
+    }
+    .toggle input:checked + .switch { background: #30d158; }
+    .toggle input:checked + .switch::after { transform: translateX(18px); }
+    .btns { display: flex; gap: 8px; margin-top: 20px; }
+    .btn {
+      flex: 1; padding: 8px; border: none; border-radius: 6px;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+    }
+    .btn.save { background: #0a84ff; color: #fff; }
+    .btn.save:hover { background: #409cff; }
+    .btn.cancel { background: #3a3a3c; color: #f5f5f7; }
+    .btn.cancel:hover { background: #48484a; }
+    .msg { font-size: 12px; margin-top: 8px; display: none; }
+    .msg.ok { color: #30d158; display: block; }
+    .msg.err { color: #ff453a; display: block; }
+  </style>
+</head>
+<body>
+  <h2>偏好设置</h2>
+  <form id="form">
+    <div class="field">
+      <label>界面语言</label>
+      <select id="locale">
+        <option value="zh-CN">简体中文</option>
+        <option value="en">English</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>服务端口</label>
+      <input type="number" id="port" min="1024" max="65535" />
+    </div>
+    <div class="field">
+      <label>全局快捷键</label>
+      <input type="text" id="shortcut" placeholder="CmdOrCtrl+Shift+O" />
+    </div>
+    <div class="field">
+      <div class="toggle">
+        <label>开机自启</label>
+        <input type="checkbox" id="autostart" /><span class="switch"></span>
+      </div>
+    </div>
+    <div class="field">
+      <div class="toggle">
+        <label>系统通知</label>
+        <input type="checkbox" id="notifications" checked /><span class="switch"></span>
+      </div>
+    </div>
+  </form>
+  <div class="btns">
+    <button class="btn cancel" id="cancelBtn">取消</button>
+    <button class="btn save" id="saveBtn">保存</button>
+  </div>
+  <div class="msg" id="msg"></div>
+
+  <script>
+    const { invoke } = window.__TAURI__.core;
+
+    let originalLocale = '';
+
+    async function load() {
+      try {
+        const p = await invoke('get_prefs');
+        document.getElementById('locale').value = p.locale || 'zh-CN';
+        document.getElementById('port').value = p.port;
+        document.getElementById('shortcut').value = p.shortcut;
+        document.getElementById('autostart').checked = p.autostart;
+        document.getElementById('notifications').checked = p.notifications_enabled;
+        originalLocale = p.locale || 'zh-CN';
+      } catch (e) {
+        showMsg('加载失败: ' + e, false);
+      }
+    }
+
+    function showMsg(text, ok) {
+      const m = document.getElementById('msg');
+      m.textContent = text;
+      m.className = 'msg ' + (ok ? 'ok' : 'err');
+      setTimeout(() => m.className = 'msg', 2500);
+    }
+
+    document.getElementById('saveBtn').addEventListener('click', async () => {
+      const locale = document.getElementById('locale').value;
+      try {
+        await invoke('set_prefs', {
+          prefs: {
+            port: parseInt(document.getElementById('port').value) || 7070,
+            shortcut: document.getElementById('shortcut').value || 'CmdOrCtrl+Shift+O',
+            autostart: document.getElementById('autostart').checked,
+            notifications_enabled: document.getElementById('notifications').checked,
+            locale: locale,
+          }
+        });
+
+        // 如果语言变了，立即生效
+        if (locale !== originalLocale) {
+          try { await invoke('apply_lang', { locale: locale }); } catch {}
+          originalLocale = locale;
+        }
+
+        showMsg('已保存', true);
+      } catch (e) {
+        showMsg('保存失败: ' + e, false);
+      }
+    });
+
+    document.getElementById('cancelBtn').addEventListener('click', () => {
+      window.__TAURI__.window.getCurrent().hide();
+    });
+
+    load();
+  </script>
+</body>
+</html>

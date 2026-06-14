@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ever-Living Color Picker</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'SF Pro Display', -apple-system, sans-serif; background: #f5f5f5; color: #1d1d1f; }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
+
+  h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; color: #1d1d1f; }
+  .subtitle { font-size: 15px; color: #6e6e73; margin-bottom: 40px; }
+
+  /* ── Icon Card ── */
+  .icon-card { background: #fff; border-radius: 20px; padding: 32px; display: flex; align-items: center; gap: 24px; margin-bottom: 32px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .icon-card img { width: 96px; height: 96px; border-radius: 22px; box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+  .icon-card .info h2 { font-size: 20px; margin-bottom: 4px; }
+  .icon-card .info p { font-size: 14px; color: #6e6e73; }
+
+  /* ── Palette Grid ── */
+  .section-title { font-size: 18px; font-weight: 600; margin: 40px 0 20px; display:flex; align-items:center; gap:12px; }
+  .section-title::after { content:''; flex:1; height:1px; background:#ddd; }
+
+  .palettes { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+
+  .palette { background: #fff; border-radius: 18px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.06); cursor: pointer; transition: .2s; border: 2px solid transparent; position: relative; }
+  .palette:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,.10); }
+  .palette.selected { border-color: #1d1d1f; }
+
+  .palette-swatches { display: flex; height: 100px; }
+  .palette-swatches div { flex:1; position:relative; }
+  .palette-swatches div:first-child { flex:1.5; }
+
+  .palette-body { padding: 20px; }
+  .palette-name { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+  .palette-hexes { display: flex; gap: 12px; flex-wrap: wrap; }
+  .palette-hex { font-size: 12px; font-family: 'SF Mono', monospace; color: #6e6e73; background: #f5f5f7; padding: 4px 8px; border-radius: 6px; }
+
+  /* ── Preview Pane ── */
+  .preview-section { margin-top: 48px; }
+  .previews { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 720px) { .previews { grid-template-columns: 1fr; } }
+
+  .preview { border-radius: 18px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,.08); }
+  .preview-header { padding: 12px 20px; font-size: 12px; color: #fff; display: flex; align-items: center; gap: 8px; }
+  .preview-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .preview-dot:nth-child(1) { background: #ff5f57; }
+  .preview-dot:nth-child(2) { background: #febc2e; }
+  .preview-dot:nth-child(3) { background: #28c840; }
+
+  /* ── Welcome Page Preview ── */
+  .welcome-screen { padding: 80px 40px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; }
+
+  .welcome-logo { width: 80px; height: 80px; border-radius: 20px; margin-bottom: 28px; box-shadow: 0 8px 30px rgba(0,0,0,.12); }
+
+  .welcome-title { font-size: 28px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.5px; }
+  .welcome-body { font-size: 15px; margin-bottom: 32px; max-width: 360px; line-height: 1.6; }
+  .welcome-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; border: none; border-radius: 100px; font-size: 15px; font-weight: 600; cursor: pointer; color: #fff; transition: .2s; }
+
+  /* ── Sidebar Preview ── */
+  .sidebar-screen { display: flex; min-height: 400px; }
+  .sidebar-bar { width: 220px; padding: 20px; display: flex; flex-direction: column; gap: 4px; }
+  .sidebar-brand { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 10px; margin-bottom: 16px; }
+  .sidebar-brand img { width: 28px; height: 28px; border-radius: 8px; }
+  .sidebar-brand span { font-size: 14px; font-weight: 600; }
+  .sidebar-item { padding: 8px 12px; border-radius: 8px; font-size: 13px; cursor: pointer; transition: .15s; }
+  .sidebar-item.active { font-weight: 600; }
+  .sidebar-main { flex: 1; padding: 30px; display: flex; align-items: center; justify-content: center; }
+
+  .selected-check { position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; border-radius: 50%; background: #1d1d1f; display: none; align-items: center; justify-content: center; color: #fff; font-size: 14px; }
+  .palette.selected .selected-check { display: flex; }
+
+  .apply-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #1d1d1f; padding: 16px 24px; display: flex; align-items: center; justify-content: center; gap: 16px; z-index: 100; transform: translateY(100%); transition: .3s; }
+  .apply-bar.show { transform: translateY(0); }
+  .apply-bar span { color: #fff; font-size: 15px; font-weight: 500; }
+  .apply-bar button { padding: 10px 24px; border: none; border-radius: 100px; font-size: 14px; font-weight: 600; cursor: pointer; background: #fff; color: #1d1d1f; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Ever-Living Color Picker</h1>
+  <p class="subtitle">从应用图标提取的绿色系配色方案 - 点击选中后预览实时效果</p>
+
+  <!-- Icon Reference -->
+  <div class="icon-card">
+    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%2370a050'/%3E%3Cstop offset='100%25' stop-color='%235a8a3c'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='200' height='200' rx='44' fill='url(%23g)'/%3E%3Ccircle cx='80' cy='75' r='35' fill='white' opacity='.25'/%3E%3Ccircle cx='130' cy='145' r='55' fill='white' opacity='.15'/%3E%3Cpath d='M85 45 L85 120' stroke='white' stroke-width='8' stroke-linecap='round' opacity='.3'/%3E%3Cpath d='M60 75 L110 60' stroke='white' stroke-width='6' stroke-linecap='round' opacity='.2'/%3E%3C/svg%3E" alt="Ever-Living">
+    <div class="info">
+      <h2>Ever-Living 应用图标</h2>
+      <p>主色提取：绿色系 · 自然｜生机｜持久</p>
+    </div>
+  </div>
+
+  <div class="section-title">配色方案</div>
+  <div id="palettes" class="palettes"></div>
+
+  <div class="section-title">欢迎页面预览</div>
+  <div class="previews">
+    <div id="preview-light" class="preview" style="background:#fff"></div>
+    <div id="preview-dark" class="preview" style="background:#1c1c1e"></div>
+  </div>
+
+  <div class="section-title">侧栏 / 强调色预览</div>
+  <div class="previews">
+    <div id="sidebar-light" class="preview" style="background:#fff"></div>
+    <div id="sidebar-dark" class="preview" style="background:#1c1c1e"></div>
+  </div>
+</div>
+
+<div class="apply-bar" id="applyBar">
+  <span id="applyLabel">选中: —</span>
+  <button onclick="applyColors()">✅ 确认这个配色</button>
+</div>
+
+<script>
+// ── Color Palette Definitions ──
+const palettes = [
+  {
+    name: 'Forest Green (当前)',
+    desc: '图标直出 · 自然稳重',
+    light: { primary:'#70a050', hover:'#5a8a3c', soft:'#e8f0e0', bg:'#ffffff', text:'#1d1d1f', text2:'#6e6e73' },
+    dark:  { primary:'#8cba6e', hover:'#70a050', soft:'#1e2a18', bg:'#16181d', text:'#e6e8ec', text2:'#878c97' }
+  },
+  {
+    name: 'Verdant',
+    desc: '鲜嫩翠绿 · 活力明亮',
+    light: { primary:'#4caf50', hover:'#388e3c', soft:'#e8f5e9', bg:'#ffffff', text:'#1d1d1f', text2:'#6e6e73' },
+    dark:  { primary:'#66bb6a', hover:'#4caf50', soft:'#1b2e1b', bg:'#16181d', text:'#e6e8ec', text2:'#878c97' }
+  },
+  {
+    name: 'Sage',
+    desc: '鼠尾草绿 · 优雅柔和',
+    light: { primary:'#87a96e', hover:'#6d8f54', soft:'#f0f3eb', bg:'#ffffff', text:'#1d1d1f', text2:'#6e6e73' },
+    dark:  { primary:'#9dbf84', hover:'#87a96e', soft:'#1e241a', bg:'#16181d', text:'#e6e8ec', text2:'#878c97' }
+  },
+  {
+    name: 'Emerald',
+    desc: '翡翠绿 · 高级深邃',
+    light: { primary:'#2e8b57', hover:'#236b43', soft:'#e6f2ec', bg:'#ffffff', text:'#1d1d1f', text2:'#6e6e73' },
+    dark:  { primary:'#4caf87', hover:'#2e8b57', soft:'#172a20', bg:'#16181d', text:'#e6e8ec', text2:'#878c97' }
+  },
+  {
+    name: 'Moss',
+    desc: '苔藓绿 · 温暖沉稳',
+    light: { primary:'#6b8e4e', hover:'#55703d', soft:'#edf2e8', bg:'#ffffff', text:'#1d1d1f', text2:'#6e6e73' },
+    dark:  { primary:'#85a868', hover:'#6b8e4e', soft:'#1a2015', bg:'#16181d', text:'#e6e8ec', text2:'#878c97' }
+  },
+  {
+    name: 'Spearmint',
+    desc: '薄荷绿 · 清凉现代',
+    light: { primary:'#5fa88b', hover:'#498b6e', soft:'#e9f4f0', bg:'#ffffff', text:'#1d1d1f', text2:'#6e6e73' },
+    dark:  { primary:'#7fc4a3', hover:'#5fa88b', soft:'#162a22', bg:'#16181d', text:'#e6e8ec', text2:'#878c97' }
+  },
+];
+
+let selected = 0;
+const stored = localStorage.getItem('ever-living-palette');
+if (stored !== null) selected = parseInt(stored);
+
+function renderPalettes() {
+  const container = document.getElementById('palettes');
+  container.innerHTML = palettes.map((p, i) => `
+    <div class="palette ${i===selected?'selected':''}" onclick="select(${i})">
+      <div class="selected-check">✓</div>
+      <div class="palette-swatches">
+        <div style="background:${p.light.primary}"></div>
+        <div style="background:${p.light.hover}"></div>
+        <div style="background:${p.dark.primary}"></div>
+        <div style="background:${p.dark.hover}"></div>
+        <div style="background:${p.light.soft}"></div>
+      </div>
+      <div class="palette-body">
+        <div class="palette-name">${p.name}</div>
+        <div style="font-size:13px;color:#6e6e73;margin-bottom:8px">${p.desc}</div>
+        <div class="palette-hexes">
+          <span class="palette-hex">${p.light.primary}</span>
+          <span class="palette-hex">${p.light.hover}</span>
+          <span class="palette-hex">${p.dark.primary}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function select(i) {
+  selected = i;
+  localStorage.setItem('ever-living-palette', i);
+  renderPalettes();
+  renderPreviews();
+  document.getElementById('applyBar').classList.add('show');
+  document.getElementById('applyLabel').textContent = `选中: ${palettes[i].name} — ${palettes[i].light.primary}`;
+}
+
+function buildWelcomeHTML(p, accent, theme) {
+  const isDark = theme === 'dark';
+  const c = isDark ? p.dark : p.light;
+  return `
+    <div class="welcome-screen" style="background:${c.bg}; min-height:400px;">
+      <img class="welcome-logo"
+           src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='${encodeURIComponent(c.primary)}'/%3E%3Cstop offset='100%25' stop-color='${encodeURIComponent(c.hover)}'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='200' height='200' rx='44' fill='url(%23g)'/%3E%3Ccircle cx='80' cy='75' r='35' fill='white' opacity='.25'/%3E%3Ccircle cx='130' cy='145' r='55' fill='white' opacity='.15'/%3E%3Ctext x='100' y='120' text-anchor='middle' fill='white' font-size='60' font-weight='700' opacity='.6'%3EE%3C/text%3E%3C/svg%3E"
+           alt="Ever-Living" style="box-shadow: 0 8px 30px ${isDark?'rgba(0,0,0,.3)':'rgba(0,0,0,.12)'};">
+      <div class="welcome-title" style="color:${c.text}; display:flex; align-items:center; gap:10px;">
+        <span style="font-size:36px;">✦</span>
+        Welcome to <span style="color:${c.primary}">Ever-Living</span>
+      </div>
+      <div class="welcome-body" style="color:${c.text2};">
+        你的 AI 永续助理 — 持久对话、智能记忆、多会话并行
+      </div>
+      <button class="welcome-btn" style="background:${c.primary}; box-shadow: 0 4px 16px ${c.primary}44;"
+              onmouseover="this.style.background='${c.hover}'"
+              onmouseout="this.style.background='${c.primary}'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        新会话
+      </button>
+      <div style="margin-top:32px; display:flex; gap:4px; color:${c.text2}; font-size:12px; opacity:.5;">
+        <span>⌘N</span><span style="margin:0 4px;">·</span>
+        <span>按 Enter 开始</span>
+      </div>
+    </div>`;
+}
+
+function buildSidebarHTML(p, accent, theme) {
+  const isDark = theme === 'dark';
+  const c = isDark ? p.dark : p.light;
+  return `
+    <div class="sidebar-screen">
+      <div class="sidebar-bar" style="background:${c.bg}; border-right:1px solid ${isDark?'#2a2f3a':'#e4e6ea'};">
+        <div class="sidebar-brand" style="background:${c.soft}">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' rx='44' fill='${encodeURIComponent(c.primary)}'/%3E%3Ctext x='100' y='120' text-anchor='middle' fill='white' font-size='80' font-weight='700' opacity='.6'%3EE%3C/text%3E%3C/svg%3E">
+          <span style="color:${c.text}; font-weight:600;">Ever-Living</span>
+        </div>
+        <div class="sidebar-item active" style="background:${c.soft}; color:${c.primary};">💬 会话</div>
+        <div class="sidebar-item" style="color:${c.text2};">⚙️ 设置</div>
+        <div class="sidebar-item" style="color:${c.text2};">🧠 记忆</div>
+        <div class="sidebar-item" style="color:${c.text2};">💰 账单</div>
+      </div>
+      <div class="sidebar-main" style="background:${c.bg};">
+        <div style="text-align:center; color:${c.text2}; font-size:14px;">← 选择会话开始</div>
+      </div>
+    </div>`;
+}
+
+function renderPreviews() {
+  const p = palettes[selected];
+  document.getElementById('preview-light').innerHTML = buildWelcomeHTML(p, selected, 'light');
+  document.getElementById('preview-dark').innerHTML = buildWelcomeHTML(p, selected, 'dark');
+  document.getElementById('sidebar-light').innerHTML = buildSidebarHTML(p, selected, 'light');
+  document.getElementById('sidebar-dark').innerHTML = buildSidebarHTML(p, selected, 'dark');
+}
+
+function applyColors() {
+  const p = palettes[selected];
+  localStorage.setItem('ever-living-chosen', JSON.stringify(p));
+  alert(`已选择: ${p.name}\n\n浅色主题: ${p.light.primary} / ${p.light.hover}\n暗色主题: ${p.dark.primary} / ${p.dark.hover}\n\n请告诉 Claude 用这些颜色替换 app.css`);
+}
+
+// Init
+renderPalettes();
+renderPreviews();
+// Show apply bar if already selected
+if (selected > 0) {
+  document.getElementById('applyBar').classList.add('show');
+  document.getElementById('applyLabel').textContent = `选中: ${palettes[selected].name} — ${palettes[selected].light.primary}`;
+}
+</script>
+</body>
+</html>
